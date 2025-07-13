@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BattleStats Analyzer - Анализ статистики WoT и WoT Blitz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff9500;
+            --primary-dark: #e68600;
+            --secondary: #3a86ff;
+            --dark: #1a1a2e;
+            --darker: #0d0d1a;
+            --light: #f0f0f0;
+            --gray: #8a8a9e;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--darker), var(--dark));
+            color: var(--light);
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(255, 149, 0, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(58, 134, 255, 0.1) 0%, transparent 20%);
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header Styles */
+        header {
+            padding: 30px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            background: rgba(13, 13, 26, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+        }
+        
+        .logo-text {
+            font-family: 'Oxanium', sans-serif;
+            font-weight: 700;
+            font-size: 1.8rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        nav a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+            position: relative;
+        }
+        
+        nav a::after {
+            content: "";
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+        
+        nav a:hover {
+            color: var(--primary);
+        }
+        
+        nav a:hover::after {
+            width: 100%;
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 100px 0;
+            text-align: center;
+            position: relative;
+        }
+        
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .hero h1 {
+            font-family: 'Oxanium', sans-serif;
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            background: linear-gradient(to right, var(--primary), #ffcc00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p {
+            font-size: 1.4rem;
+            color: var(--gray);
+            margin-bottom: 40px;
+        }
+        
+        .hero-badges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            color: var(--darker);
+            font-family: 'Oxanium', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            padding: 18px 45px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(255, 149, 0, 0.4);
+            text-decoration: none;
+            margin: 20px 0;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(255, 149, 0, 0.6);
+        }
+        
+        .version-info {
+            color: var(--gray);
+            font-size: 1rem;
+            margin-top: 15px;
+        }
+        
+        /* Features Section */
+        .section {
+            padding: 100px 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 70px;
+        }
+        
+        .section-title h2 {
+            font-family: 'Oxanium', sans-serif;
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-title h2::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+        
+        .section-title p {
+            color: var(--gray);
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 20px auto 0;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 149, 0, 0.3);
+        }
+        
+        .feature-icon {
+            font-size: 3.5rem;
+            color: var(--primary);
+            margin-bottom: 25px;
+        }
+        
+        .feature-card h3 {
+            font-family: 'Oxanium', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+        
+        /* Games Section */
+        .games {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            padding: 60px;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        
+        .game-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .game-card:hover {
+            background: rgba(58, 134, 255, 0.1);
+            transform: scale(1.05);
+        }
+        
+        .game-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--secondary);
+            background: rgba(58, 134, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        .game-card h3 {
+            font-family: 'Oxanium', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        /* How it Works */
+        .steps {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 50px;
+            flex-wrap: wrap;
+        }
+        
+        .step {
+            text-align: center;
+            max-width: 250px;
+            position: relative;
+        }
+        
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            color: var(--darker);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Oxanium', sans-serif;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin: 0 auto 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step:nth-child(2) .step-number {
+            background: var(--secondary);
+        }
+        
+        .step:nth-child(3) .step-number {
+            background: #00d26a;
+        }
+        
+        .step::before {
+            content: "";
+            position: absolute;
+            top: 30px;
+            left: 100%;
+            width: 40px;
+            height: 3px;
+            background: var(--gray);
+            opacity: 0.3;
+        }
+        
+        .step:last-child::before {
+            display: none;
+        }
+        
+        .step h3 {
+            font-family: 'Oxanium', sans-serif;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        /* CTA Section */
+        .cta {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 20px;
+            padding: 80px;
+            text-align: center;
+            margin: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta::before {
+            content: "";
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 149, 0, 0.1);
+            border-radius: 50%;
+        }
+        
+        .cta::after {
+            content: "";
+            position: absolute;
+            bottom: -80px;
+            left: -50px;
+            width: 250px;
+            height: 250px;
+            background: rgba(58, 134, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        .cta h2 {
+            font-family: 'Oxanium', sans-serif;
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .cta p {
+            max-width: 700px;
+            margin: 0 auto 40px;
+            font-size: 1.2rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Footer */
+        footer {
+            padding: 60px 0 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+        
+        .footer-column h3 {
+            font-family: 'Oxanium', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+        
+        .footer-links a {
+            color: var(--gray);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .social-link {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            color: var(--light);
+            transition: all 0.3s;
+        }
+        
+        .social-link:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray);
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            nav ul {
+                gap: 15px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+            
+            .step::before {
+                display: none;
+            }
+            
+            .cta {
+                padding: 50px 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero {
+                padding: 70px 0;
+            }
+            
+            .hero h1 {
+                font-size: 2.3rem;
+            }
+            
+            .hero p {
+                font-size: 1.2rem;
+            }
+            
+            .section {
+                padding: 70px 0;
+            }
+            
+            .section-title h2 {
+                font-size: 2.2rem;
+            }
+            
+            .download-btn {
+                font-size: 1.2rem;
+                padding: 15px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="logo-text">BattleStats</div>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#features">Возможности</a></li>
+                        <li><a href="#games">Игры</a></li>
+                        <li><a href="#how-it-works">Как работает</a></li>
+                        <li><a href="#download">Скачать</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Анализ статистики танковых боёв</h1>
+                <p>Точный расчёт среднего урона и процента побед для World of Tanks и WoT Blitz</p>
+                
+                <div class="hero-badges">
+                    <div class="badge">
+                        <i class="fas fa-bolt"></i>
+                        <span>Мгновенный анализ</span>
+                    </div>
+                    <div class="badge">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Безопасно</span>
+                    </div>
+                    <div class="badge">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Автообновление</span>
+                    </div>
+                </div>
+                
+                <a href="https://drive.google.com/uc?export=download&id=1Gc6eBDwx0yPFQQR4KKKGyA_HNdiT3z7e" class="download-btn" download>
+                    <i class="fas fa-download"></i>
+                    Скачать бесплатно
+                </a>
+                
+                <div class="version-info">Версия 2.1.5 | Windows 7/8/10/11 | 15.7 МБ</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Мощные возможности</h2>
+                <p>Полный контроль над вашей игровой статистикой и эффективностью</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <h3>Средний урон</h3>
+                    <p>Точный расчёт среднего нанесённого урона за выбранное количество боёв с детализацией по технике</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h3>Процент побед</h3>
+                    <p>Анализ реального процента побед с учётом типа техники, уровня боёв и других параметров</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h3>Динамика прогресса</h3>
+                    <p>Графики изменения вашей эффективности за недели, месяцы и игровые сессии</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-tank"></i>
+                    </div>
+                    <h3>Сравнение техники</h3>
+                    <p>Рейтинги и сравнение эффективности на разных танках и классах техники</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Анализ взводов</h3>
+                    <p>Статистика эффективности при игре во взводе с разными составами игроков</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3>Уведомления</h3>
+                    <p>Оповещения при достижении личных рекордов и изменении статистики</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Games Section -->
+    <section id="games" class="section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Поддерживаемые игры</h2>
+                <p>Работает со всеми популярными танковыми MMO</p>
+            </div>
+            
+            <div class="games">
+                <div class="games-grid">
+                    <div class="game-card">
+                        <div class="game-icon">
+                            <i class="fas fa-tank"></i>
+                        </div>
+                        <h3>World of Tanks</h3>
+                        <p>Полная статистика для ПК-версии игры</p>
+                    </div>
+                    
+                    <div class="game-card">
+                        <div class="game-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h3>WoT Blitz</h3>
+                        <p>Мобильная версия World of Tanks</p>
+                    </div>
+                    
+                    <div class="game-card">
+                        <div class="game-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Tanks Blitz</h3>
+                        <p>Консольная и мобильная версии</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Как это работает</h2>
+                <p>3 простых шага к улучшению вашей статистики</p>
+            </div>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Скачайте и установите</h3>
+                    <p>Загрузите программу и запустите установщик</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Подключите аккаунт</h3>
+                    <p>Авторизуйтесь через игровой аккаунт Wargaming</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Анализируйте статистику</h3>
+                    <p>Выберите количество боёв и просматривайте детальную статистику</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <div class="container">
+        <div class="cta">
+            <h2>Начните улучшать свою статистику сегодня!</h2>
+            <p>Скачайте BattleStats Analyzer бесплатно и получите полный контроль над своей игровой эффективностью</p>
+            <a href="https://drive.google.com/uc?export=download&id=1Gc6eBDwx0yPFQQR4KKKGyA_HNdiT3z7e" class="download-btn" download>
+                <i class="fas fa-download"></i>
+                Скачать сейчас
+            </a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>BattleStats</h3>
+                    <p>Профессиональный инструмент для анализа статистики в танковых MMO играх</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-vk"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Навигация</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Главная</a></li>
+                        <li><a href="#features">Возможности</a></li>
+                        <li><a href="#games">Игры</a></li>
+                        <li><a href="#download">Скачать</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Поддержка</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Документация</a></li>
+                        <li><a href="#">Форум</a></li>
+                        <li><a href="#">Контакты</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Правовая информация</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Пользовательское соглашение</a></li>
+                        <li><a href="#">Политика конфиденциальности</a></li>
+                        <li><a href="#">Отказ от ответственности</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2023 BattleStats Analyzer. Все права защищены. World of Tanks, WoT Blitz являются зарегистрированными товарными знаками Wargaming Group Limited.</p>
+                <p>Этот проект не аффилирован с Wargaming и создан независимыми разработчиками.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Плавная прокрутка
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Анимация кнопки скачивания
+        const downloadBtn = document.querySelector('.download-btn');
+        downloadBtn.addEventListener('mouseenter', () => {
+            downloadBtn.innerHTML = '<i class="fas fa-arrow-down"></i> Скачать сейчас';
+        });
+        
+        downloadBtn.addEventListener('mouseleave', () => {
+            downloadBtn.innerHTML = '<i class="fas fa-download"></i> Скачать бесплатно';
+        });
+        
+        // Анимация при загрузке
+        document.addEventListener('DOMContentLoaded', () => {
+            const elements = document.querySelectorAll('.feature-card, .game-card, .step');
+            elements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(20px)';
+                    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                    
+                    setTimeout(() => {
+                        el.style.opacity = '1';
+                        el.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>
