@@ -1,26 +1,52 @@
-name: Rust Game Build
+name: Build Wolfenstein Game (Rust)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  # Позволяет запускать вручную из вкладки Actions
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Собираем под Windows, Linux и macOS
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install Rust
+    - name: Install Rust stable
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
         override: true
 
-    - name: Build Release
+    - name: Build in release mode
       run: cargo build --verbose --release
 
-    - name: Upload Game Artifact
+    - name: Upload artifact (Windows)
+      if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v4
       with:
-        name: wolfenstein_game
-        path: target/release/wolf3d_macroquad*
+        name: wolf3d_windows
+        path: target/release/wolf3d_macroquad.exe
+
+    - name: Upload artifact (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: wolf3d_linux
+        path: target/release/wolf3d_macroquad
+
+    - name: Upload artifact (macOS)
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: wolf3d_macos
+        path: target/release/wolf3d_macroquad
