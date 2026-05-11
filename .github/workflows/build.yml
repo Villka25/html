@@ -26,7 +26,7 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "http://www.godevtool.com/Golink.zip" -OutFile "golink.zip"
           Expand-Archive -Path "golink.zip" -DestinationPath "."
-          .\golink.exe main.obj /console /entry main user32.dll kernel32.dll gdi32.dll
+          .\golink.exe main.obj /windows /entry main user32.dll kernel32.dll gdi32.dll
 
       # 5. Загружаем результат
       - name: Upload EXE
