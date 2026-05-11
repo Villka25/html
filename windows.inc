@@ -17,5 +17,8 @@ WS_OVERLAPPEDWINDOW equ 13565952
 WS_VISIBLE          equ 134217728
 WS_EX_APPWINDOW     equ 262144
 
-; Константы для отображения окна
+; Константа для размеров/позиции по умолчанию
+CW_USEDEFAULT   equ 0x80000000
+
+; Константа для отображения окна
 SW_SHOW         equ 5
