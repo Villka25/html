@@ -1,0 +1,36 @@
+name: Build ASM Program
+
+# Запуск при пуше в main или вручную
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      # 1. Клонируем код репозитория
+      - uses: actions/checkout@v4
+
+      # 2. Устанавливаем NASM
+      - name: Setup NASM
+        uses: ilammy/setup-nasm@v1
+
+      # 3. Компилируем наш ассемблерный код в объектный файл
+      - name: Assemble with NASM
+        run: nasm -f win64 main.asm -o main.obj
+
+      # 4. Линкуем объектный файл в исполняемый .exe
+      - name: Link with GoLink
+        run: |
+          Invoke-WebRequest -Uri "http://www.godevtool.com/Golink.zip" -OutFile "golink.zip"
+          Expand-Archive -Path "golink.zip" -DestinationPath "."
+          .\golink.exe main.obj /console /entry main user32.dll kernel32.dll gdi32.dll
+
+      # 5. Загружаем результат
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: asm-program
+          path: main.exe
